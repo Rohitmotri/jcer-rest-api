@@ -25,7 +25,7 @@ SECRET_KEY = 'ogj6&vb#7)!lc*vbc)%069c-8nv4r*p96a-w0jw2j*o_fy2+bj'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'user',
+
 ]
 
 MIDDLEWARE = [
@@ -73,13 +76,21 @@ WSGI_APPLICATION = 'restapi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
+# database connection
+db_settings = {
+    'dbname': 'jcer',
+    'dbhost': '127.0.0.1:5432',
+    'dbuser': 'postgres',
+    'dbpass': 'iamghost',
+    'dbschema': 'public',
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
