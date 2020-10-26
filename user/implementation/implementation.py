@@ -85,7 +85,7 @@ class UserImplementation:
                     columns_to_update = {}
                     for key,value in student["update_data"].items():
                         if key == "password":
-                            value = pbkdf2_sha256.encrypt(value,round=1200,salt=32)
+                            value = pbkdf2_sha256.encrypt(value,rounds=1200,salt_size=32)
                             columns_to_update[student_columns[key]] = value
                         columns_to_update[student_columns[key]] = value
                         columns_to_update[Student.modified_by] = student['student_id']

@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import uuid
 from passlib.hash import pbkdf2_sha256
-from faculty.utils import get_admin_payload
+from faculty.utils import get_admin_payload,admin_columns
 
 
 class AdminImplementation:
@@ -72,40 +72,40 @@ class AdminImplementation:
         return payload,message
 
     def update_admin(self):
-        payload =[]
+        payload = []
         count = 0
         try:
             admin_to_update = self.requests.get("admins", None)
             with DBConnection() as session:
-                for student in student_to_update:
+                for admin in admin_to_update:
                     columns_to_update = {}
-                    for key,value in student["update_data"].items():
+                    for key, value in admin["update_data"].items():
                         if key == "password":
-                            value = pbkdf2_sha256.encrypt(value,round=1200,salt=32)
-                            columns_to_update[student_columns[key]] = value
-                        columns_to_update[student_columns[key]] = value
-                        columns_to_update[Student.modified_by] = student['student_id']
-                        columns_to_update[Student.modified_on] = datetime.now()
+                            value = pbkdf2_sha256.encrypt(value, rounds=1200, salt_size=32)
+                            columns_to_update[admin_columns[key]] = value
+                        columns_to_update[admin_columns[key]] = value
+                        columns_to_update[Admin.modified_by] = admin['admin_id']
+                        columns_to_update[Admin.modified_on] = datetime.now()
                     try:
-                        query = session.query(Student).filter(Student.student_id == student['student_id']) \
+
+                        query = session.query(Admin).filter(Admin.admin_id == admin['admin_id']) \
                             .update(columns_to_update, synchronize_session=False)
                         session.commit()
                         if query:
                             count += 1
-                            payload.append({"student_id": student['student_id'], "message": "Updated successfully."})
+                            payload.append({"admin_id": admin['admin_id'], "message": "Updated successfully."})
                         else:
-                            payload.append({"student_id": student['student_id'], "message": "Student doesn't exist."})
+                            payload.append({"admin_id": admin['admin_id'], "message": "Faculty doesn't exist."})
 
                     except SQLAlchemyError as e:
                         print(e)
                         payload.append(
-                            {"student_id": student['student_id'], "message": str(e._message).split("Key (")[1].split(")")[0]
-                                                                    + " already exists."})
+                            {"admin_id": admin['admin_id'], "message": str(e._message)})
                         session.rollback()
         except Exception as e:
             print(e)
             raise e
-        return payload, str(count) + " student updated."
+        return payload, str(count) + " Faculty updated."
 
     # delete users
     def delete_admin(self):
