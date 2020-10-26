@@ -1,35 +1,32 @@
-from user.models import Student
+from faculty.models import Admin
 from restapi.connection import DBConnection
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 import uuid
 from passlib.hash import pbkdf2_sha256
-from user.utils import get_student_payload,student_columns,login_payload
+from faculty.utils import get_admin_payload
 
 
-class UserImplementation:
+class AdminImplementation:
     def __init__(self, requests):
         self.requests = requests
 
     # create users
-    def create_student(self):
+    def create_admin(self):
         payload = []
         count = 0
         try:
-            students_to_create = self.requests.get("students", None)
+            admin_to_create = self.requests.get("admins", None)
             with DBConnection() as session:
-                for student in students_to_create:
+                for admin in admin_to_create:
                     _id = str(uuid.uuid4())
                     try:
-                        new_user = Student(
-                            student_id=_id,
-                            name=student['name'],
-                            usn=student['usn'].lower(),
-                            email=student['email'],
-                            password=pbkdf2_sha256.encrypt(student['password'], rounds=1200, salt_size=32),
-                            sem=student['sem'],
-                            year=student['year'],
-                            branch_id=student['branch_id'],
+                        new_user = Admin(
+                            admin_id=_id,
+                            name=admin['name'],
+                            email=admin['email'],
+                            password=pbkdf2_sha256.encrypt(admin['password'], rounds=1200, salt_size=32),
+                            branch_id=admin['branch_id'],
                             created_by=_id,
                             created_on=datetime.now(),
                             modified_by=_id,
@@ -37,49 +34,48 @@ class UserImplementation:
                         )
                         session.add(new_user)
                         session.commit()
-                        payload.append({"student_id": _id, "message": "Student added successfully."})
+                        payload.append({"admin_id": _id, "message": "Admin added successfully."})
                         count += 1
                     except SQLAlchemyError as e:
                         print(e)
-                        payload.append({"student_id": _id, "message": str(e._message).split(":  ")[1].split("\\")[0]})
+                        payload.append({"admin_id": _id, "message": str(e._message).split(":  ")[1].split("\\")[0]})
                         session.rollback()
         except Exception as e:
             print(e)
             raise e
         finally:
-            return payload, str(count) + " students created."
+            return payload, str(count) + " admins created."
 
-    # get users
-    def get_student(self):
+    def get_admin(self):
         payload = []
-        count = 0
+        count= 0
         message = ""
         try:
-            student_to_find = self.requests.get("students", None)
+            admin_to_get = self.requests.get("admins", None)
             with DBConnection() as session:
-                if len(student_to_find):
-                    for student in student_to_find:
-                        query = session.query(Student).filter(Student.student_id == student)
+                if len(admin_to_get):
+                    for admin in admin_to_get:
+                        query = session.query(Admin).filter(Admin.admin_id == admin)
                         data = query.all()
                         if data:
-                            payload1, message, count = get_student_payload(data, count)
+                            payload1,message,count = get_admin_payload(data,count)
                             payload.append(payload1[0])
                         else:
-                            payload.append({"student_id": student, "message": "Student doesn't exists."})
+                            payload.append({"admin_id": admin, "message": "Admin doesn't exists."})
                 else:
-                    query = session.query(Student)
+                    query = session.query(Admin)
                     data = query.all()
-                    payload, message, count = get_student_payload(data, count)
+                    payload,message,count = get_admin_payload(data, count)
         except Exception as e:
             print(e)
             raise e
-        return payload, message
+        return payload,message
 
-    def update_student(self):
+    def update_admin(self):
         payload =[]
         count = 0
         try:
-            student_to_update = self.requests.get("students", None)
+            admin_to_update = self.requests.get("admins", None)
             with DBConnection() as session:
                 for student in student_to_update:
                     columns_to_update = {}
@@ -112,38 +108,40 @@ class UserImplementation:
         return payload, str(count) + " student updated."
 
     # delete users
-    def delete_student(self):
+    def delete_admin(self):
         payload = []
         count = 0
         try:
-            student_to_delete = self.requests.get("students", None)
+            admin_to_delete = self.requests.get("admins", None)
             with DBConnection() as session:
-                for student in student_to_delete:
-                    query = session.query(Student).filter(Student.student_id == student).delete(synchronize_session=False)
+                for admin in admin_to_delete:
+                    query = session.query(Admin).filter(Admin.admin_id == admin).delete(
+                        synchronize_session=False)
                     if query:
                         count += 1
-                        payload.append({"student_id": student, "message": "Deleted successfully."})
+                        payload.append({"admin_id": admin, "message": "Deleted successfully."})
                         session.commit()
                     else:
-                        payload.append({"student_id": student, "message": "Student doesn't exists."})
+                        payload.append({"admin_id": admin, "message": "Admin doesn't exists."})
         except Exception as e:
             print(e)
             raise e
-        return payload, str(count) + " rows deleted."
+        return payload, str(count) + " admin deleted."
 
     # login
     def login(self):
         payload = []
         message = ""
         try:
-            student = self.requests.get("student", None)
+            admin = self.requests.get("admin", None)
             with DBConnection() as session:
                 try:
-                    query = session.query(Student.student_id, Student.usn, Student.password).filter(Student.usn == student[0]["usn"].lower())
+                    query = session.query(Admin.student_id, Admin.email, Admin.password).filter(
+                        Admin.email == Admin[0]["email"].lower())
                     data = query.all()
                     if data:
-                        if pbkdf2_sha256.verify(student[0]["password"], data[0][2]):
-                            payload.append({"student_id": data[0][0]})
+                        if pbkdf2_sha256.verify(Admin[0]["password"], data[0][2]):
+                            payload.append({"admin_id": data[0][0]})
                             message = "sucessfully login"
                 except Exception as e:
                     print(e)
@@ -152,3 +150,5 @@ class UserImplementation:
             print(e)
             raise e
         return payload, message
+
+
