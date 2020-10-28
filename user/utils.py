@@ -1,5 +1,5 @@
 from user.models import Student
-# from branch.models import Branches
+from branch.models import Branches
 from restapi.connection import DBConnection
 
 
@@ -23,17 +23,16 @@ def get_student_payload(data, count):
     payload = []
     try:
         for student in data:
-            # with DBConnection() as session:
-            #     # try:
-            #     #     query = session.query(Branches).filter(Branches.branch_id == user.branch_id)
-            #     #     data1 = query.all()
-            #     #     if data1:
-            #     #         for branch in data1:
-            #     #             branch_name = branch.branch_name
-            #     # except Exception as e:
-            #     #     print(e)
-            #     #     raise e
-            branch_name = 'CSE'
+            with DBConnection() as session:
+                try:
+                    query = session.query(Branches).filter(Branches.branch_id == student.branch_id)
+                    data1 = query.all()
+                    if data1:
+                        for branch in data1:
+                            branch_name=branch.branch_name
+                except Exception as e:
+                    print(e)
+                    raise e
             new_user = {
                     "student_id": student.student_id,
                     "name": student.name,
